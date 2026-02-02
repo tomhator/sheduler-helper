@@ -23,13 +23,16 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
+            console.log("[Login] Attempting auth...", { isSignUp, email });
             const { error } = isSignUp
                 ? await signUp(email, password)
                 : await signIn(email, password);
 
             if (error) {
+                console.error("[Login Error] Auth failed:", error);
                 setError(error.message);
             } else {
+                console.log("[Login Success]");
                 if (isSignUp) {
                     setError("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
                 } else {
@@ -37,6 +40,7 @@ export default function LoginPage() {
                 }
             }
         } catch (err: any) {
+            console.error("[Login Critical Error]:", err);
             setError(err.message || "오류가 발생했습니다.");
         } finally {
             setLoading(false);
@@ -48,13 +52,16 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
+            console.log("[Login] Starting Google Sign-In...");
             const { error } = await signInWithGoogle();
             if (error) {
+                console.error("[Google Login Error]:", error);
                 setError(error.message);
                 setLoading(false);
             }
             // Google OAuth will redirect, so we don't set loading to false
         } catch (err: any) {
+            console.error("[Google Login Critical Error]:", err);
             setError(err.message || "Google 로그인 중 오류가 발생했습니다.");
             setLoading(false);
         }
@@ -92,8 +99,8 @@ export default function LoginPage() {
                         <button
                             onClick={() => setIsSignUp(false)}
                             className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${!isSignUp
-                                    ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                    : "bg-muted/50 text-foreground/50 hover:text-foreground"
+                                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                : "bg-muted/50 text-foreground/50 hover:text-foreground"
                                 }`}
                         >
                             로그인
@@ -101,8 +108,8 @@ export default function LoginPage() {
                         <button
                             onClick={() => setIsSignUp(true)}
                             className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${isSignUp
-                                    ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                    : "bg-muted/50 text-foreground/50 hover:text-foreground"
+                                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                : "bg-muted/50 text-foreground/50 hover:text-foreground"
                                 }`}
                         >
                             회원가입
@@ -146,8 +153,8 @@ export default function LoginPage() {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className={`p-3 rounded-lg text-sm font-medium ${error.includes("완료")
-                                        ? "bg-green-500/10 text-green-600 border border-green-500/20"
-                                        : "bg-red-500/10 text-red-600 border border-red-500/20"
+                                    ? "bg-green-500/10 text-green-600 border border-green-500/20"
+                                    : "bg-red-500/10 text-red-600 border border-red-500/20"
                                     }`}
                             >
                                 {error}
