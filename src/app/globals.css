@@ -1,42 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  /* Pastel Light Theme */
-  --background: #FDFBFC;
-  --foreground: #2D3436;
-  --primary: #A29BFE; /* Soft Purple */
-  --secondary: #81ECEC; /* Soft Cyan */
-  --accent: #FAB1A0; /* Soft Peach */
-  --muted: #DFE6E9;
+  /* Figma Inspired Minimal Theme */
+  --background: #FFFFFF;
+  --foreground: #030213;
+  --primary: #030213;
+  --secondary: #6366F1;
+  /* Indigo accent */
+  --accent: #F43F5E;
+  /* Rose accent for highlights */
+  --muted: #F8F9FA;
   --card: #FFFFFF;
-  --card-foreground: #2D3436;
-  --border: #EDF2F7;
+  --card-foreground: #030213;
+  --border: #ECECF0;
+  --radius: 0.625rem;
+  /* 10px from Figma */
+  --primary-foreground: #FFFFFF;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-border: var(--border);
+  --radius-xl: var(--radius);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Sleek Dark Theme */
-    --background: #1A1C1E;
-    --foreground: #E3E3E3;
-    --primary: #8E84F3;
-    --secondary: #5BC0BE;
-    --accent: #FF8F78;
-    --muted: #2D3135;
-    --card: #25282B;
-    --card-foreground: #E3E3E3;
-    --border: #2D3135;
+    /* Sleek Dark Mode (Figma adjusted) */
+    --background: #030213;
+    --foreground: #FFFFFF;
+    --primary: #FFFFFF;
+    --primary-foreground: #030213;
+    --secondary: #818CF8;
+    --accent: #FB7185;
+    --muted: #1A1A2E;
+    --card: #111122;
+    --card-foreground: #FFFFFF;
+    --border: #2D2D3F;
   }
 }
 
@@ -48,9 +56,18 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  overflow-x: hidden;
   min-height: 100dvh;
+}
+
+/* Force override for button text visibility on primary background */
+.btn-inverse-text {
+  color: #FFFFFF !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-inverse-text {
+    color: #030213 !important;
+  }
 }
 
 /* Mobile viewport adjustments */
@@ -58,6 +75,7 @@ html {
   font-size: 16px;
 }
 
-input, button {
+input,
+button {
   font-family: inherit;
 }

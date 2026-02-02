@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface HeatmapProps {
@@ -8,8 +8,16 @@ interface HeatmapProps {
 }
 
 export default function Heatmap({ data = [] }: HeatmapProps) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Demo data generation for the last 14 weeks (98 days)
     const heatmapData = useMemo(() => {
+        if (!mounted) return []; // Return empty during SSR
+
         const days = 98; // 14 weeks
         const today = new Date();
         const result = [];
@@ -22,15 +30,19 @@ export default function Heatmap({ data = [] }: HeatmapProps) {
             result.push({ date: date.toISOString().split('T')[0], count });
         }
         return result;
-    }, []);
+    }, [mounted]);
 
     const getColor = (count: number) => {
-        if (count === 0) return "bg-muted/40";
+        if (count === 0) return "bg-border/60";
         if (count === 1) return "bg-primary/20";
-        if (count === 2) return "bg-primary/40";
-        if (count === 3) return "bg-primary/70";
+        if (count === 2) return "bg-primary/45";
+        if (count === 3) return "bg-primary/75";
         return "bg-primary";
     };
+
+    if (!mounted) {
+        return <div className="w-full h-[130px] bg-muted/10 animate-pulse rounded-xl" />;
+    }
 
     return (
         <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
