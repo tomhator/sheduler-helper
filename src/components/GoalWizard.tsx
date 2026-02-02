@@ -106,10 +106,19 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
 
     const getApiUrl = (path: string) => {
         let baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
+        // If we are in a browser and no baseUrl is provided, use relative path
+        if (typeof window !== 'undefined' && !baseUrl) {
+            console.log(`[Frontend] Using relative path for API: ${path}`);
+            return path;
+        }
+
         if (baseUrl.endsWith("/")) {
             baseUrl = baseUrl.slice(0, -1);
         }
-        return `${baseUrl}${path}`;
+        const finalUrl = `${baseUrl}${path}`;
+        console.log(`[Frontend] Full API URL: ${finalUrl}`);
+        return finalUrl;
     };
 
     const generateMilestones = async () => {

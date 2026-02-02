@@ -1,13 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 60; // Increase timeout for Gemini API calls
+
 export async function POST(req: Request) {
   console.log("[API] /api/generate-tasks request received");
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
-    console.error("[API Error] GEMINI_API_KEY is missing");
-    return NextResponse.json({ error: "API 키가 설정되지 않았습니다." }, { status: 500 });
+    console.error("[API Error] GEMINI_API_KEY is missing in env variables");
+    return NextResponse.json({ error: "API 키가 설정되지 않았습니다. Vercel 환경 변수를 확인해주세요." }, { status: 500 });
+  } else {
+    console.log(`[API] GEMINI_API_KEY is present (Masked: ${apiKey.substring(0, 5)}...${apiKey.substring(apiKey.length - 3)})`);
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
@@ -16,7 +20,9 @@ export async function POST(req: Request) {
   const model = genAI.getGenerativeModel({ model: modelName });
 
   try {
-    const { type, goalTitle, goalDescription, startDate, endDate, milestoneTitle } = await req.json();
+    const body = await req.json();
+    const { type, goalTitle, goalDescription, startDate, endDate, milestoneTitle } = body;
+    console.log("[API] Request body:", JSON.stringify(body));
 
     let prompt = "";
     if (type === "milestones") {
@@ -25,14 +31,25 @@ export async function POST(req: Request) {
       prompt = `Goal: "${goalTitle}"\nMilestone: "${milestoneTitle}"\nSuggest 4-6 checklist items as a JSON array of strings.`;
     }
 
-    console.log("[API] Sending prompt to Gemini...");
+    console.log("[API] Sending prompt to Gemini. Prompt length:", prompt.length);
+
+    // Set a timeout for the Gemini call if possible or just log start/end
+    const startTime = Date.now();
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    console.log("[API] Raw response from Gemini:", text);
+    const duration = Date.now() - startTime;
+
+    console.log(`[API] Gemini responded in ${duration}ms. Raw text length: ${text?.length || 0}`);
+
+    if (!text || text.trim() === "") {
+      console.error("[API Error] Gemini returned an empty response.");
+      return NextResponse.json({ error: "AI가 빈 응답을 반환했습니다. 다시 시도해주세요." }, { status: 500 });
+    }
 
     // JSON extraction logic
     let jsonStr = "";
+    // ... (rest of the logic)
 
     // 1. Try to find JSON within code blocks
     const jsonMatch = text.match(/```json?([\s\S]*?)```/);
