@@ -210,10 +210,10 @@ export function useGoals() {
             // Re-fetch to satisfy the real data and icons
             fetchGoals();
             return goalData.id;
-        } catch (e) {
+        } catch (e: any) {
             console.error("Error adding goal, rolling back:", e);
             setGoals(previousGoals);
-            alert("목표 추가에 실패했습니다.");
+            alert(`목표 추가에 실패했습니다: ${e.message || e.details || "알 수 없는 오류"}`);
         }
     };
 
