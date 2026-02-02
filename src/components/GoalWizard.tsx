@@ -105,10 +105,10 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
     };
 
     const getApiUrl = (path: string) => {
-        // In Capacitor (Android/iOS), window.location.origin might be 'http://localhost' or 'capacitor://localhost'
-        // which might not work for Next.js API routes if not proxied or handled.
-        // For development/production, we can use an environment variable or a fallback.
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        let baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.slice(0, -1);
+        }
         return `${baseUrl}${path}`;
     };
 
@@ -135,7 +135,14 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
                 })
             });
 
-            const json = await res.json();
+            const text = await res.text();
+            let json;
+            try {
+                json = JSON.parse(text);
+            } catch (e) {
+                console.error("Failed to parse JSON response:", text);
+                throw new Error(`서버 응답이 올바르지 않습니다 (Status: ${res.status}). Vercel 타임아웃이거나 환경 변수 설정 문제일 수 있습니다.`);
+            }
 
             if (!res.ok) {
                 console.error("API Error:", res.status, json);
@@ -179,7 +186,14 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
                 })
             });
 
-            const json = await res.json();
+            const text = await res.text();
+            let json;
+            try {
+                json = JSON.parse(text);
+            } catch (e) {
+                console.error("Failed to parse JSON response (Checklist):", text);
+                throw new Error(`체크리스트 서버 응답이 올바르지 않습니다 (Status: ${res.status}).`);
+            }
 
             if (!res.ok) {
                 console.error("API Error (Checklist):", res.status, json);
