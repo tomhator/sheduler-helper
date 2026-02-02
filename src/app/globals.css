@@ -2,6 +2,7 @@
 
 :root {
   /* Figma Inspired Minimal Theme */
+  color-scheme: light;
   --background: #FFFFFF;
   --foreground: #030213;
   --primary: #030213;
@@ -32,22 +33,6 @@
   --radius-xl: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Sleek Dark Mode (Figma adjusted) */
-    --background: #030213;
-    --foreground: #FFFFFF;
-    --primary: #FFFFFF;
-    --primary-foreground: #030213;
-    --secondary: #818CF8;
-    --accent: #FB7185;
-    --muted: #1A1A2E;
-    --card: #111122;
-    --card-foreground: #FFFFFF;
-    --border: #2D2D3F;
-  }
-}
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -62,12 +47,6 @@ body {
 /* Force override for button text visibility on primary background */
 .btn-inverse-text {
   color: #FFFFFF !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  .btn-inverse-text {
-    color: #030213 !important;
-  }
 }
 
 /* Mobile viewport adjustments */
