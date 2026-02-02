@@ -1,7 +1,19 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic"; // Ensure the route is always treated as dynamic
 export const maxDuration = 60; // Increase timeout for Gemini API calls
+
+export async function GET() {
+  return NextResponse.json({
+    status: "ok",
+    message: "AI API Route is reachable",
+    env_check: {
+      has_gemini_key: !!process.env.GEMINI_API_KEY,
+      supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL ? "present" : "missing"
+    }
+  });
+}
 
 export async function POST(req: Request) {
   console.log("[API] /api/generate-tasks request received");

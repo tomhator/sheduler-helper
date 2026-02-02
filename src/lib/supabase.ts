@@ -10,6 +10,10 @@ if (typeof window !== 'undefined' && (!supabaseUrl || !supabaseAnonKey)) {
     console.warn('Supabase environment variables are missing');
 }
 
+if (typeof window !== 'undefined') {
+    console.log(`[Supabase] Connecting to: ${supabaseUrl?.substring(0, 20)}...`);
+}
+
 export const supabase = createClient<Database>(
     supabaseUrl || 'https://placeholder.supabase.co',
     supabaseAnonKey || 'placeholder',
