@@ -27,15 +27,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let isMounted = true;
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (isMounted) {
-                setSession(session);
-                setUser(session?.user ?? null);
-                setLoading(false);
+        const initAuth = async () => {
+            try {
+                console.log("[Auth] Checking initial session...");
+                const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error("[Auth] getSession error:", error);
+                }
+
+                if (isMounted) {
+                    if (initialSession) {
+                        console.log("[Auth] Initial session found for:", initialSession.user.email);
+                        setSession(initialSession);
+                        setUser(initialSession.user);
+                    } else {
+                        console.log("[Auth] No initial session found.");
+                    }
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error("[Auth] Initialization unexpected error:", err);
+                if (isMounted) setLoading(false);
             }
-        });
+        };
+
+        initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            console.log(`[Auth] State changed: ${_event}`, session?.user?.email ? `(User: ${session.user.email})` : "(No User)");
             if (isMounted) {
                 setSession(session);
                 setUser(session?.user ?? null);
