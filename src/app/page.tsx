@@ -11,12 +11,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Goal } from "@/types/goals";
 import Link from "next/link";
-import { Trophy, LogOut, User } from "lucide-react";
+import { Trophy, LogOut, User, Menu, X, ChevronRight, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { migrateLocalStorageToSupabase } from "@/lib/migration";
 
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const { goals, addGoal, deleteGoal, toggleCheckItem, updateGoal, isLoading } = useGoals();
   const { user, profile, signOut } = useAuth();
@@ -45,19 +46,18 @@ export default function Home() {
     <ProtectedRoute>
       <div className="flex flex-col gap-6 h-full pb-32">
         {/* Header */}
-        <header className="px-6 pt-12 pb-2 flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-black tracking-tight text-foreground leading-tight">
-              천천히 하나씩 이뤄내봐요!<br />
-              <span className="text-primary">{displayName}님!</span> ✨
+        <header className="px-6 pt-12 pb-2 flex justify-between items-start relative z-50">
+          <div className="space-y-1">
+            <h2 className="text-[26px] font-black tracking-tight text-foreground leading-[1.2]">
+              천천히 하나씩<br />
+              이뤄내봐요, <span className="text-primary">{displayName}님!</span> ✨
             </h2>
-            <p className="text-foreground/60 mt-1">작심삼일을 작심일년으로.</p>
+            <p className="text-foreground/40 text-[13px] font-medium tracking-tight">작심삼일을 작심일년으로.</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/profile" className="p-2 bg-muted/50 rounded-full hover:bg-muted transition-colors">
-              <User className="w-5 h-5 text-foreground/60" />
-            </Link>
-            <div className="w-4 h-4 flex items-center justify-center relative">
+
+          <div className="flex items-center gap-2">
+            {/* Loading Indicator */}
+            <div className="w-5 h-5 flex items-center justify-center relative">
               <AnimatePresence>
                 {isLoading && (
                   <motion.div
@@ -73,12 +73,85 @@ export default function Home() {
                 )}
               </AnimatePresence>
             </div>
-            <Link href="/completed" className="p-3 bg-muted/50 rounded-full hover:bg-muted transition-colors text-foreground/50 hover:text-secondary group">
-              <Trophy className="w-6 h-6" />
-            </Link>
-            <button onClick={() => signOut()} className="p-3 bg-muted/50 rounded-full hover:bg-red-500/10 transition-colors text-foreground/50 hover:text-red-500 group">
-              <LogOut className="w-6 h-6" />
-            </button>
+
+            {/* Menu Button */}
+            <div className="relative">
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className={`p-3 rounded-2xl transition-all duration-300 ${isMenuOpen ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-muted/50 text-foreground/60 hover:bg-muted hover:text-foreground'
+                  }`}
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+
+              {/* Dropdown Menu */}
+              <AnimatePresence>
+                {isMenuOpen && (
+                  <>
+                    {/* Backdrop to close menu */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="fixed inset-0 z-[-1]"
+                    />
+
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10, x: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10, x: 10 }}
+                      className="absolute right-0 mt-3 w-56 bg-card border border-border rounded-[24px] shadow-2xl overflow-hidden py-2 z-50 origin-top-right"
+                    >
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                          <User className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold">내 정보</p>
+                          <p className="text-[10px] text-foreground/40 font-medium tracking-tight">계정 및 프로필 설정</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-foreground/20" />
+                      </Link>
+
+                      <Link
+                        href="/completed"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
+                          <Trophy className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold">명예의 전당</p>
+                          <p className="text-[10px] text-foreground/40 font-medium tracking-tight">완료된 목표들</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-foreground/20" />
+                      </Link>
+
+                      <div className="px-2 pt-2 mt-2 border-t border-border/50">
+                        <button
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            signOut();
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-red-500 hover:bg-red-500/5 transition-colors group text-left"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-colors">
+                            <LogOut className="w-5 h-5" />
+                          </div>
+                          <p className="text-sm font-bold">로그아웃</p>
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 
