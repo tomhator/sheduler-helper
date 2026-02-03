@@ -15,8 +15,16 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const { signIn, signUp, signInWithGoogle } = useAuth();
+    const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
     const router = useRouter();
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (!authLoading && user) {
+            console.log("[Login] User already logged in, redirecting to home");
+            router.push("/");
+        }
+    }, [user, authLoading, router]);
 
     // Load remembered email
     useEffect(() => {
