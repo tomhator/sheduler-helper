@@ -43,13 +43,13 @@ export default function CompletedGoalsPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="relative group overflow-hidden rounded-2xl bg-card border border-border shadow-xl shadow-black/5 aspect-[4/5] flex flex-col"
+                                className="relative group overflow-hidden rounded-2xl bg-card border border-border shadow-xl shadow-black/5"
                             >
                                 {/* Decorative Background */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
                                 <div className="absolute top-0 right-0 w-48 h-48 bg-secondary/10 rounded-full blur-3xl -mr-12 -mt-12" />
 
-                                <div className="relative z-10 p-6 flex-1 flex flex-col">
+                                <div className="relative z-10 p-6">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="p-3 bg-background/50 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm">
                                             <Medal className="w-8 h-8 text-secondary" />
@@ -59,7 +59,7 @@ export default function CompletedGoalsPage() {
                                         </span>
                                     </div>
 
-                                    <div className="space-y-4 flex-1">
+                                    <div className="space-y-4">
                                         <div>
                                             <h2 className="text-2xl font-black leading-tight mb-2 line-clamp-2">{goal.title}</h2>
                                             <p className="text-sm text-foreground/60 line-clamp-2">{goal.description}</p>
