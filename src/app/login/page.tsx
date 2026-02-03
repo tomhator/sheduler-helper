@@ -11,6 +11,7 @@ export default function LoginPage() {
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [nickname, setNickname] = useState("");
     const [autoLogin, setAutoLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -40,9 +41,9 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            console.log("[Login] Attempting auth...", { isSignUp, email });
+            console.log("[Login] Attempting auth...", { isSignUp, email, nickname });
             const { error } = isSignUp
-                ? await signUp(email, password)
+                ? await signUp(email, password, nickname)
                 : await signIn(email, password);
 
             if (error) {

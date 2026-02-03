@@ -96,6 +96,29 @@ export interface Database {
                     created_at?: string
                 }
             }
+            profiles: {
+                Row: {
+                    id: string
+                    last_active_at: string
+                    last_action_at: string
+                    nickname: string | null
+                    updated_at: string
+                }
+                Insert: {
+                    id: string
+                    last_active_at?: string
+                    last_action_at?: string
+                    nickname?: string | null
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    last_active_at?: string
+                    last_action_at?: string
+                    nickname?: string | null
+                    updated_at?: string
+                }
+            }
         }
     }
 }

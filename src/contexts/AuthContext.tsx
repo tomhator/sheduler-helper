@@ -9,11 +9,13 @@ import { App } from '@capacitor/app';
 interface AuthContextType {
     user: User | null;
     session: Session | null;
+    profile: { nickname: string | null } | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<{ error: any }>;
-    signUp: (email: string, password: string) => Promise<{ error: any }>;
+    signUp: (email: string, password: string, nickname?: string) => Promise<{ error: any }>;
     signInWithGoogle: () => Promise<{ error: any }>;
     signOut: () => Promise<void>;
+    updateNickname: (nickname: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,7 +23,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
+    const [profile, setProfile] = useState<{ nickname: string | null } | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const fetchProfile = async (userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('nickname')
+                .eq('id', userId)
+                .single();
+
+            if (!error && data) {
+                setProfile(data);
+            } else {
+                setProfile({ nickname: null });
+            }
+        } catch (err) {
+            console.error("Error fetching profile:", err);
+            setProfile({ nickname: null });
+        }
+    };
 
     // 1. Initial Session Check & Auth Listener (Once)
     useEffect(() => {
@@ -45,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         console.log("[Auth] ✅ Session found:", initialSession.user.email);
                         setSession(initialSession);
                         setUser(initialSession.user);
+                        fetchProfile(initialSession.user.id);
                     } else {
                         console.log("[Auth] ❌ No session found.");
                     }
@@ -69,6 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setSession(session);
                 setUser(session?.user ?? null);
 
+                if (session?.user) {
+                    fetchProfile(session.user.id);
+                } else {
+                    setProfile(null);
+                }
+
                 // 세션 체크가 이미 완료된 경우에만 loading 업데이트
                 if (sessionChecked) {
                     setLoading(false);
@@ -78,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (_event === 'SIGNED_OUT') {
                     setSession(null);
                     setUser(null);
+                    setProfile(null);
                 }
             }
         });
@@ -123,11 +153,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error };
     };
 
-    const signUp = async (email: string, password: string) => {
-        const { error } = await supabase.auth.signUp({
+    const signUp = async (email: string, password: string, nickname?: string) => {
+        const { data, error } = await supabase.auth.signUp({
             email,
             password,
         });
+
+        if (!error && data.user) {
+            // Create profile record
+            await supabase.from('profiles').insert({
+                id: data.user.id,
+                nickname: nickname || null,
+                last_active_at: new Date().toISOString(),
+                last_action_at: new Date().toISOString()
+            });
+        }
+
         return { error };
     };
 
@@ -143,6 +184,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const signOut = async () => {
         await supabase.auth.signOut();
+        setProfile(null);
+    };
+
+    const updateNickname = async (nickname: string) => {
+        if (!user) return { error: { message: "로그인이 필요합니다." } };
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ nickname })
+            .eq('id', user.id);
+
+        if (!error) {
+            setProfile(prev => prev ? { ...prev, nickname } : { nickname });
+        }
+
+        return { error };
     };
 
     return (
@@ -150,11 +207,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             value={{
                 user,
                 session,
+                profile,
                 loading,
                 signIn,
                 signUp,
                 signInWithGoogle,
                 signOut,
+                updateNickname,
             }}
         >
             {children}

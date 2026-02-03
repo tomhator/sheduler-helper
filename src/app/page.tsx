@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Goal } from "@/types/goals";
 import Link from "next/link";
-import { Trophy, LogOut } from "lucide-react";
+import { Trophy, LogOut, User } from "lucide-react";
 import { useEffect } from "react";
 import { migrateLocalStorageToSupabase } from "@/lib/migration";
 
@@ -19,7 +19,7 @@ export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const { goals, addGoal, deleteGoal, toggleCheckItem, updateGoal, isLoading } = useGoals();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -39,18 +39,24 @@ export default function Home() {
     return activeMilestone ? `${activeGoal.title} - ${activeMilestone.title}` : activeGoal.title;
   }, [activeGoals]);
 
+  const displayName = profile?.nickname || user?.email?.split('@')[0] || '친구';
+
   return (
     <ProtectedRoute>
       <div className="flex flex-col gap-6 h-full pb-32">
         {/* Header */}
         <header className="px-6 pt-12 pb-2 flex justify-between items-start">
           <div>
-            <h2 className="text-3xl font-black tracking-tight text-foreground">
-              Hello, <span className="text-primary">{user?.email?.split('@')[0] || 'User'}</span> 👋
+            <h2 className="text-2xl font-black tracking-tight text-foreground leading-tight">
+              천천히 하나씩 이뤄내봐요!<br />
+              <span className="text-primary">{displayName}님!</span> ✨
             </h2>
             <p className="text-foreground/60 mt-1">작심삼일을 작심일년으로.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Link href="/profile" className="p-2 bg-muted/50 rounded-full hover:bg-muted transition-colors">
+              <User className="w-5 h-5 text-foreground/60" />
+            </Link>
             <div className="w-4 h-4 flex items-center justify-center relative">
               <AnimatePresence>
                 {isLoading && (
