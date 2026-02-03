@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchProfile = async (userId: string) => {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('profiles')
                 .select('nickname')
                 .eq('id', userId)
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!error && data.user) {
             // Create profile record
-            await supabase.from('profiles').insert({
+            await (supabase as any).from('profiles').insert({
                 id: data.user.id,
                 nickname: nickname || null,
                 last_active_at: new Date().toISOString(),
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updateNickname = async (nickname: string) => {
         if (!user) return { error: { message: "로그인이 필요합니다." } };
 
-        const { error } = await supabase
+        const { error } = await (supabase as any)
             .from('profiles')
             .update({ nickname })
             .eq('id', user.id);
