@@ -4,8 +4,13 @@ import type { Database } from './database.types';
 // Helper functions for cookie management in browser
 function parseCookies(): Record<string, string> {
     return document.cookie.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        if (key) acc[key] = value || '';
+        const trimmed = cookie.trim();
+        const firstEquals = trimmed.indexOf('=');
+        if (firstEquals > 0) {
+            const key = trimmed.substring(0, firstEquals);
+            const value = trimmed.substring(firstEquals + 1);
+            acc[key] = value;
+        }
         return acc;
     }, {} as Record<string, string>);
 }
