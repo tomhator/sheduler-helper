@@ -27,39 +27,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let isMounted = true;
 
-        const initAuth = async () => {
+        // 세션 체크를 위한 함수
+        const checkSession = async () => {
             try {
-                console.log("[Auth] Checking initial session...");
-                const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-
-                if (error) {
-                    console.error("[Auth] getSession error:", error);
-                }
-
+                const { data: { session: initialSession } } = await supabase.auth.getSession();
                 if (isMounted) {
                     if (initialSession) {
-                        console.log("[Auth] Initial session found for:", initialSession.user.email);
                         setSession(initialSession);
                         setUser(initialSession.user);
-                    } else {
-                        console.log("[Auth] No initial session found.");
                     }
                     setLoading(false);
                 }
-            } catch (err) {
-                console.error("[Auth] Initialization unexpected error:", err);
+            } catch (error) {
+                console.error("[Auth] Session check failed:", error);
                 if (isMounted) setLoading(false);
             }
         };
 
-        initAuth();
+        checkSession();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            console.log(`[Auth] State changed: ${_event}`, session?.user?.email ? `(User: ${session.user.email})` : "(No User)");
+            console.log(`[Auth] Event: ${_event}`, session?.user?.email ? `(User: ${session.user.email})` : "(No User)");
+            
             if (isMounted) {
                 setSession(session);
                 setUser(session?.user ?? null);
                 setLoading(false);
+
+                // 세션이 만료되었거나 로그아웃된 경우 처리
+                if (_event === 'SIGNED_OUT' || _event === 'USER_UPDATED') {
+                    if (!session) {
+                        setSession(null);
+                        setUser(null);
+                    }
+                }
+                
+                // 토큰 갱신 실패 등의 에러 상황 처리
+                if (_event === 'TOKEN_REFRESHED') {
+                    console.log("[Auth] Token refreshed successfully");
+                }
             }
         });
 
