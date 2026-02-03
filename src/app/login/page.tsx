@@ -1,21 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, Lock, Sparkles, LogIn } from "lucide-react";
+import { Mail, Lock, Sparkles, LogIn, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [autoLogin, setAutoLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
     const { signIn, signUp, signInWithGoogle } = useAuth();
     const router = useRouter();
+
+    // Load remembered email
+    useEffect(() => {
+        const savedEmail = localStorage.getItem("remembered-email");
+        if (savedEmail) {
+            setEmail(savedEmail);
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,6 +42,14 @@ export default function LoginPage() {
                 setError(error.message);
             } else {
                 console.log("[Login Success]");
+
+                // Remember email if autoLogin is checked
+                if (autoLogin) {
+                    localStorage.setItem("remembered-email", email);
+                } else {
+                    localStorage.removeItem("remembered-email");
+                }
+
                 if (isSignUp) {
                     setError("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
                 } else {
@@ -146,6 +163,21 @@ export default function LoginPage() {
                                     className="w-full pl-12 pr-4 py-3.5 bg-muted/30 border border-border rounded-xl focus:border-primary/50 outline-none transition-all text-foreground placeholder:text-foreground/40"
                                 />
                             </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <button
+                                type="button"
+                                onClick={() => setAutoLogin(!autoLogin)}
+                                className="flex items-center gap-2 group cursor-pointer"
+                            >
+                                <div className="text-primary group-hover:scale-110 transition-transform">
+                                    {autoLogin ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5 text-foreground/20" />}
+                                </div>
+                                <span className={`text-sm font-medium transition-colors ${autoLogin ? 'text-foreground' : 'text-foreground/40'}`}>
+                                    로그인 상태 유지
+                                </span>
+                            </button>
                         </div>
 
                         {error && (
