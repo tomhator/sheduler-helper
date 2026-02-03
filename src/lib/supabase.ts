@@ -18,6 +18,7 @@ export const supabase = createClient<Database>(
             autoRefreshToken: true,
             detectSessionInUrl: true,
             storageKey: 'jaksim1year-auth-token',
+            // 명시적 storage 지정은 유지하되 안정적인 클라이언트 측 localStorage를 활용
             storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         },
     }

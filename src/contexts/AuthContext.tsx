@@ -26,17 +26,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 1. Initial Session Check & Auth Listener (Once)
     useEffect(() => {
         let isMounted = true;
+        let authListenerInitialized = false;
 
-        // 세션 체크를 위한 함수
+        // 세션 체크를 위한 함수 (더 견고하게 수정)
         const checkSession = async () => {
             try {
-                const { data: { session: initialSession } } = await supabase.auth.getSession();
+                console.log("[Auth] Starting definitive session check...");
+                const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+
+                if (error) throw error;
+
                 if (isMounted) {
                     if (initialSession) {
+                        console.log("[Auth] Session recovered:", initialSession.user.email);
                         setSession(initialSession);
                         setUser(initialSession.user);
+                    } else {
+                        console.log("[Auth] No session found in storage.");
                     }
-                    setLoading(false);
+
+                    // 아주 짧은 지연을 주어 UI가 세션 상태를 인지할 시간을 줌 (모바일 대응)
+                    setTimeout(() => {
+                        if (isMounted) setLoading(false);
+                    }, 100);
                 }
             } catch (error) {
                 console.error("[Auth] Session check failed:", error);
@@ -46,25 +58,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         checkSession();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             console.log(`[Auth] Event: ${_event}`, session?.user?.email ? `(User: ${session.user.email})` : "(No User)");
-            
+
             if (isMounted) {
                 setSession(session);
                 setUser(session?.user ?? null);
-                setLoading(false);
 
-                // 세션이 만료되었거나 로그아웃된 경우 처리
-                if (_event === 'SIGNED_OUT' || _event === 'USER_UPDATED') {
-                    if (!session) {
-                        setSession(null);
-                        setUser(null);
-                    }
+                // 세션이 생기거나 로그아웃이 확실할 때 로딩 종료
+                if (_event === 'SIGNED_IN' || _event === 'SIGNED_OUT' || _event === 'INITIAL_SESSION') {
+                    setLoading(false);
                 }
-                
-                // 토큰 갱신 실패 등의 에러 상황 처리
+
                 if (_event === 'TOKEN_REFRESHED') {
-                    console.log("[Auth] Token refreshed successfully");
+                    console.log("[Auth] Token refreshed");
                 }
             }
         });
