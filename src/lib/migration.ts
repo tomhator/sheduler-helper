@@ -24,8 +24,7 @@ export async function migrateLocalStorageToSupabase(userId: string) {
                     start_date: goal.startDate,
                     end_date: goal.endDate,
                     progress: goal.progress,
-                    is_completed: goal.isCompleted,
-                    image_url: (goal as any).imageUrl || null
+                    is_completed: goal.isCompleted
                 })
                 .select()
                 .single();

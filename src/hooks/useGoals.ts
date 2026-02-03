@@ -26,7 +26,6 @@ export function useGoals() {
                     end_date,
                     progress,
                     is_completed,
-                    image_url,
                     created_at,
                     milestones (
                         id,
@@ -53,7 +52,6 @@ export function useGoals() {
                 endDate: g.end_date,
                 progress: g.progress,
                 isCompleted: g.is_completed,
-                imageUrl: g.image_url,
                 createdAt: new Date(g.created_at).getTime(),
                 milestones: g.milestones.map((m: any) => ({
                     id: m.id,
@@ -226,7 +224,6 @@ export function useGoals() {
             if (updates.endDate !== undefined) supabaseUpdates.end_date = updates.endDate;
             if (updates.progress !== undefined) supabaseUpdates.progress = updates.progress;
             if (updates.isCompleted !== undefined) supabaseUpdates.is_completed = updates.isCompleted;
-            if ((updates as any).imageUrl !== undefined) supabaseUpdates.image_url = (updates as any).imageUrl;
 
             const { error } = await (supabase as any)
                 .from('goals')
