@@ -2,46 +2,18 @@
 
 import { useGoals } from "@/hooks/useGoals";
 import { motion } from "framer-motion";
-import { ArrowLeft, Trophy, Calendar, Medal, Plus, ImagePlus } from "lucide-react";
+import { ArrowLeft, Trophy, Calendar, Medal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRef, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function CompletedGoalsPage() {
-    const { goals, updateGoal } = useGoals();
+    const { goals } = useGoals();
     const completedGoals = goals.filter(g => g.progress === 100);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
-
-    const handleImageClick = (goalId: string) => {
-        setActiveGoalId(goalId);
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file && activeGoalId) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                updateGoal(activeGoalId, { imageUrl: reader.result as string });
-                setActiveGoalId(null);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
 
     return (
         <ProtectedRoute>
             <div className="min-h-screen bg-background text-foreground pb-20">
-                {/* Hidden File Input */}
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    className="hidden"
-                />
                 {/* Header */}
                 <header className="px-6 pt-12 pb-6 sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-border/50">
                     <div className="flex items-center gap-4 mb-2">
@@ -53,7 +25,7 @@ export default function CompletedGoalsPage() {
                     <p className="text-foreground/60 text-sm">당신의 땀과 노력이 만든 눈부신 성과들입니다.</p>
                 </header>
 
-                <main className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <main className="p-6 grid grid-cols-1 gap-6">
                     {completedGoals.length === 0 ? (
                         <div className="col-span-full py-20 text-center space-y-4">
                             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto opacity-50">
@@ -97,35 +69,6 @@ export default function CompletedGoalsPage() {
                                             <Calendar className="w-4 h-4" />
                                             <span>{goal.endDate} 달성</span>
                                         </div>
-                                    </div>
-
-                                    {/* Image Area */}
-                                    <div className="mt-6 relative w-full aspect-video rounded-xl overflow-hidden bg-muted/50 border border-border/50 group/img">
-                                        {goal.imageUrl ? (
-                                            <>
-                                                <img
-                                                    src={goal.imageUrl}
-                                                    alt={goal.title}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-110"
-                                                />
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <button
-                                                        onClick={() => handleImageClick(goal.id)}
-                                                        className="px-4 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg text-white text-xs font-bold hover:bg-white/30 transition-colors"
-                                                    >
-                                                        이미지 변경
-                                                    </button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleImageClick(goal.id)}
-                                                className="w-full h-full flex flex-col items-center justify-center gap-2 text-foreground/40 hover:text-foreground/60 hover:bg-muted/80 transition-all"
-                                            >
-                                                <ImagePlus className="w-8 h-8" />
-                                                <span className="text-xs font-bold">이미지 추가</span>
-                                            </button>
-                                        )}
                                     </div>
                                 </div>
 
