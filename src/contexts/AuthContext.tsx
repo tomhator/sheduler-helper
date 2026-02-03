@@ -26,10 +26,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 1. Initial Session Check & Auth Listener (Once)
     useEffect(() => {
         let isMounted = true;
+        let sessionChecked = false;
 
         // 세션 체크를 위한 함수
         const checkSession = async () => {
             try {
+                console.log("[Auth] Checking session from cookies...");
                 // getSession()은 로컬 스토리지/쿠키에서 세션을 즉시 가져옵니다.
                 const { data: { session: initialSession }, error } = await supabase.auth.getSession();
 
@@ -38,18 +40,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 if (isMounted) {
+                    sessionChecked = true;
                     if (initialSession) {
-                        console.log("[Auth] Initial session found:", initialSession.user.email);
+                        console.log("[Auth] ✅ Session found:", initialSession.user.email);
                         setSession(initialSession);
                         setUser(initialSession.user);
                     } else {
-                        console.log("[Auth] No initial session found.");
+                        console.log("[Auth] ❌ No session found.");
                     }
+                    // 세션 체크가 완료된 후에만 loading을 false로
                     setLoading(false);
                 }
             } catch (err) {
                 console.error("[Auth] Initialization unexpected error:", err);
-                if (isMounted) setLoading(false);
+                if (isMounted) {
+                    sessionChecked = true;
+                    setLoading(false);
+                }
             }
         };
 
@@ -57,11 +64,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             console.log(`[Auth] State changed: ${_event}`, session?.user?.email ? `(User: ${session.user.email})` : "(No User)");
-            
+
             if (isMounted) {
                 setSession(session);
                 setUser(session?.user ?? null);
-                setLoading(false);
+
+                // 세션 체크가 이미 완료된 경우에만 loading 업데이트
+                if (sessionChecked) {
+                    setLoading(false);
+                }
 
                 // 다른 탭에서의 로그아웃 등을 처리
                 if (_event === 'SIGNED_OUT') {
