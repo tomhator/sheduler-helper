@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight, ChevronLeft, Sparkles, Calendar, Target } from "lucide-react";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { X, ChevronRight, ChevronLeft, Sparkles, Calendar, Target, GripVertical } from "lucide-react";
 import { GoalData, Milestone } from "../types/goals";
 
 interface WizardProps {
@@ -86,14 +86,20 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
     const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
     const handleComplete = () => {
+        const today = new Date().toISOString().split('T')[0];
+        const nextYear = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0];
+
         const finalGoal = {
             ...goalData,
+            startDate: goalData.startDate || today,
+            endDate: goalData.endDate || nextYear,
             milestones: goalData.milestones.map(m => ({
                 ...m,
+                date: m.date || today, // Default milestones date to today if empty
                 isCompleted: false,
                 checklists: m.checklists.map((text, idx) => ({
                     id: Date.now() + "-" + idx,
-                    text,
+                    text: text || "내용 없음", // Default text if empty
                     isCompleted: false
                 }))
             }))
@@ -457,7 +463,12 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <Reorder.Group
+                                            axis="y"
+                                            values={goalData.milestones}
+                                            onReorder={(newOrder) => setGoalData({ ...goalData, milestones: newOrder })}
+                                            className="space-y-4"
+                                        >
                                             {goalData.milestones.length === 0 ? (
                                                 <div className="p-12 text-center border-2 border-dashed border-border rounded-2xl text-foreground/40">
                                                     <Target className="w-12 h-12 mx-auto mb-3 opacity-20" />
@@ -465,8 +476,15 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
                                                 </div>
                                             ) : (
                                                 goalData.milestones.map((milestone, idx) => (
-                                                    <div key={milestone.id} className="p-4 bg-muted/30 border border-border rounded-xl">
-                                                        <div className="flex gap-4">
+                                                    <Reorder.Item
+                                                        key={milestone.id}
+                                                        value={milestone}
+                                                        className="p-4 bg-muted/30 border border-border rounded-xl flex items-start gap-4"
+                                                    >
+                                                        <div className="flex items-center self-stretch pr-2 cursor-grab active:cursor-grabbing text-foreground/20 hover:text-foreground/40 transition-colors">
+                                                            <GripVertical className="w-5 h-5" />
+                                                        </div>
+                                                        <div className="flex gap-4 flex-1">
                                                             <div className="flex flex-col gap-2 pt-2">
                                                                 <div className="w-6 h-6 bg-primary btn-inverse-text rounded-lg flex items-center justify-center text-xs font-bold">
                                                                     {idx + 1}
@@ -474,11 +492,17 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
                                                                 <div className="w-0.5 h-full bg-border mx-auto" />
                                                             </div>
                                                             <div className="flex-1 space-y-3">
-                                                                <input
+                                                                <textarea
                                                                     value={milestone.title}
                                                                     onChange={(e) => updateMilestone(milestone.id, 'title', e.target.value)}
-                                                                    className="w-full bg-transparent font-bold text-lg outline-none placeholder:text-foreground/30"
+                                                                    className="w-full bg-transparent font-bold text-lg outline-none placeholder:text-foreground/30 resize-none break-words"
                                                                     placeholder="단계 이름 (예: 자료 조사)"
+                                                                    rows={1}
+                                                                    onInput={(e) => {
+                                                                        const target = e.target as HTMLTextAreaElement;
+                                                                        target.style.height = 'auto';
+                                                                        target.style.height = target.scrollHeight + 'px';
+                                                                    }}
                                                                 />
                                                                 <input
                                                                     type="date"
@@ -494,10 +518,10 @@ export default function GoalWizard({ isOpen, onClose, onSave }: WizardProps) {
                                                                 <X className="w-4 h-4" />
                                                             </button>
                                                         </div>
-                                                    </div>
+                                                    </Reorder.Item>
                                                 ))
                                             )}
-                                        </div>
+                                        </Reorder.Group>
                                     </motion.div>
                                 )}
 

@@ -154,52 +154,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const signUp = async (email: string, password: string, nickname?: string) => {
+        console.log("[Auth] Starting signUp for:", email, "with nickname:", nickname);
+
+        // Use metadata to pass the nickname to the DB trigger
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: {
+                    nickname: nickname || null
+                }
+            }
         });
 
-        if (!error && data.user) {
-            // Create profile record
-            await (supabase as any).from('profiles').insert({
-                id: data.user.id,
-                nickname: nickname || null,
-                last_active_at: new Date().toISOString(),
-                last_action_at: new Date().toISOString()
-            });
+        if (error) {
+            console.error("[Auth] signUp error:", error);
+            return { error };
         }
 
-        return { error };
+        console.log("[Auth] signUp success. User ID:", data.user?.id);
+        // Note: Profile will be created automatically by DB trigger
+
+        return { error: null };
     };
 
     const signInWithGoogle = async () => {
+        console.log("[Auth] Starting Google Sign-In...");
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
                 redirectTo: `${window.location.origin}/auth/callback`,
             },
         });
+        if (error) console.error("[Auth] Google Sign-In error:", error);
         return { error };
     };
 
     const signOut = async () => {
+        console.log("[Auth] Signing out...");
         await supabase.auth.signOut();
         setProfile(null);
     };
 
     const updateNickname = async (nickname: string) => {
-        if (!user) return { error: { message: "로그인이 필요합니다." } };
-
-        const { error } = await (supabase as any)
-            .from('profiles')
-            .update({ nickname })
-            .eq('id', user.id);
-
-        if (!error) {
-            setProfile(prev => prev ? { ...prev, nickname } : { nickname });
+        if (!user) {
+            console.warn("[Auth] updateNickname called without user");
+            return { error: { message: "로그인이 필요합니다." } };
         }
 
-        return { error };
+        console.log("[Auth] Updating nickname to:", nickname, "for user:", user.id);
+
+        // Check if profile exists first (should be created by trigger, but just in case)
+        const { data: existingProfile, error: fetchError } = await (supabase as any)
+            .from('profiles')
+            .select('id')
+            .eq('id', user.id)
+            .single();
+
+        let result;
+        if (!existingProfile) {
+            console.log("[Auth] Profile not found, performing upsert...");
+            result = await (supabase as any)
+                .from('profiles')
+                .upsert({ id: user.id, nickname });
+        } else {
+            result = await (supabase as any)
+                .from('profiles')
+                .update({ nickname })
+                .eq('id', user.id);
+        }
+
+        if (result.error) {
+            console.error("[Auth] updateNickname error:", result.error);
+            return { error: result.error };
+        }
+
+        console.log("[Auth] updateNickname success");
+        setProfile(prev => prev ? { ...prev, nickname } : { nickname });
+
+        return { error: null };
     };
 
     return (
